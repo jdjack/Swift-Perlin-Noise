@@ -51,6 +51,8 @@ public class Perlin: NSObject {
         
     }
     
+    var max:CGFloat = 0;
+    
     func perlin(x:CGFloat, y:CGFloat) -> CGFloat {
         
         //We ensure the point is bounded by 255 - This is the one bound of the unit square
@@ -80,8 +82,10 @@ public class Perlin: NSObject {
         let x2 = lerp(a: grad(hash: ab, x: xf, y: yf - 1), b: grad(hash: bb, x: xf - 1, y: yf - 1), x: u)
         let y1 = lerp(a: x1, b: x2, x: v)
         
-        //We multiply by 2 just to produce a less "Black and White" noise map, and add one and divide by two to try and ensure positive numbers - some do still sneak through
-        return ((y1 * 2) + 1) / 2
+        
+        
+        //We return the abs value to remove any negatives. Note that the noise forms almost a bell shape around the point 0, so there will be more values around 0 than 1
+        return abs(y1)
     }
     
     
@@ -104,11 +108,14 @@ public class Perlin: NSObject {
             frequency *= 2
         }
         
+        //print(max)
+        
         return total/maxValue
     }
 
     
     public func octaveMap(width:Int, height: Int) -> [[CGFloat]] {
+        
         var map:[[CGFloat]] = []
         
         //We loop through the x and y values and scale by 50. This is an arbritatry value to scale the map
@@ -217,15 +224,15 @@ public class Perlin: NSObject {
                 let index = i * width + j
                 
                 //We pick arbitrary values to represent differnent layers, such as in a game and colour them
-                if val < 0.3 {               //Water level
+                if val < 0.15 {               //Water level
                     pixelArray[index].r = 0
                     pixelArray[index].g = 0
                     pixelArray[index].b = 255
-                } else if val < 0.5 {        //Sand
+                } else if val < 0.25 {        //Sand
                     pixelArray[index].r = 255
                     pixelArray[index].g = 255
                     pixelArray[index].b = 0
-                } else if val < 0.7 {        //Grass
+                } else if val < 0.4 {        //Grass
                     pixelArray[index].r = 0
                     pixelArray[index].g = 255
                     pixelArray[index].b = 0

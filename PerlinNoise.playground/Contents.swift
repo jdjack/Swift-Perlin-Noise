@@ -3,7 +3,7 @@
 import UIKit
 
 //The seed can be any string
-let perlin = Perlin(seed: "Test")
+let perlin = Perlin(seed: "Hello World")
 
 //Images must be square i.e. 100x100, 200x200, 1729x1729
 perlin.generateNoiseImage(size: CGSize(width: 200, height: 200))
