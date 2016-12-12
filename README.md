@@ -42,5 +42,5 @@ let mat2 = perlin3D.octaveMatrix(width: 100, height: 100, length: 100, octaves: 
 An extra feature of the 2D coordinate system is being able to turn your noise into UIImages to view how it looks. Note that the size of the image must be equal to the number of coordinates.
 
 ```swift
-perlin.generateNoiseImage(size: CGSize(width: 100, height: 100), matrix: mat1) 
+perlin2D.generateNoiseImage(size: CGSize(width: 100, height: 100), matrix: mat1) 
 ```
