@@ -1,6 +1,7 @@
-//: Playground - noun: a place where people can play
-
 import UIKit
+
+
+// ------ Perlin 2D ------
 
 //The seed can be any string
 let perlin = Perlin2D(seed: "Hello, World")
@@ -20,3 +21,40 @@ perlin.generateNoiseImage(size: CGSize(width: 200, height: 200), matrix: mat2) /
 perlin.generateLandImage(size: CGSize(width: 200, height: 200), matrix: mat1) //Example game map
 
 perlin.generateLandImage(size: CGSize(width: 200, height: 200), matrix: mat2) //Example game map
+
+
+
+
+
+
+
+// ------ Perlin 2D ------
+
+
+//The seed can be any string
+let perlin3 = Perlin3D(seed: "Hello, World")
+
+//Same as above with a 3rd dimension
+perlin3.noise(x: 3.01, y: 11.22, z: 42.17)
+perlin3.octaveNoise(x: 3.01, y: 11.22, z: 42.17, octaves: 6, persistence: 0.25)
+
+
+let mat3 = perlin3.perlinMatrix(width: 10, height: 10, length: 10)
+let mat4 = perlin3.perlinMatrix(width: 10, height: 10, length: 10)
+
+
+//   x  y  z
+mat3[3][2][1]
+
+
+
+
+
+
+
+
+
+
+
+
+

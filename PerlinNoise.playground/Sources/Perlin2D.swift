@@ -85,7 +85,7 @@ public class Perlin2D: NSObject {
         
         
         
-        //We return the abs value to remove any negatives. Note that the noise forms almost a bell shape around the point 0, so there will be more values around 0 than 1
+        //We return the value + 1 / 2 to remove any negatives.
         return (y1 + 1) / 2
     }
     
@@ -129,7 +129,7 @@ public class Perlin2D: NSObject {
                 let cx:CGFloat = CGFloat(x)/50
                 let cy:CGFloat = CGFloat(y)/50
                 
-                //We decide to use 8 octaves and 0.25 to generate our map. You can change these too
+                
                 let p = noise(x: cx, y: cy)
                 
                 row.append(p)
