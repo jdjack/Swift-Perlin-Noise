@@ -30,7 +30,7 @@ public class Perlin2D: NSObject {
         //This takes a hash (a number from 0 - 5) generated from the random permutations and returns a random
         //operation for the node to offset
         
-        switch hash & 5 {
+        switch hash & 3 {
         case 0:
             return x + y
         case 1:
@@ -39,10 +39,6 @@ public class Perlin2D: NSObject {
             return x - y
         case 3:
             return -x - y
-        case 4:
-            return y + x
-        case 5:
-            return y - x
         default:
             print("ERROR")
             return 0
@@ -51,16 +47,23 @@ public class Perlin2D: NSObject {
         
     }
     
+    func fastfloor(x:CGFloat) -> Int {
+        return x > 0 ? Int(x) : Int(x-1)
+    }
+    
     public func noise(x:CGFloat, y:CGFloat) -> CGFloat {
         
-        //We ensure the point is bounded by 255 - This is the one bound of the unit square
-        let xi = Int(x) & 255
-        let yi = Int(y) & 255
+        //Find the unit grid cell containing the point
+        var xi = fastfloor(x: x)
+        var yi = fastfloor(x: y)
         
         //This is the other bound of the unit square
-        let xf:CGFloat = x - floor(x)
-        let yf:CGFloat = y - floor(y)
+        let xf:CGFloat = x - CGFloat(xi)
+        let yf:CGFloat = y - CGFloat(yi)
         
+        //Wrap the ints around 255
+        xi = xi & 255
+        yi = yi & 255
         
         //These are offset values for interpolation
         let u = fade(t: xf)
