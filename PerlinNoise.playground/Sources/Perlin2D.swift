@@ -1,6 +1,6 @@
 import UIKit
 
-public class Perlin: NSObject {
+public class Perlin2D: NSObject {
     var permutation:[Int] = []
     
     
@@ -51,9 +51,7 @@ public class Perlin: NSObject {
         
     }
     
-    var max:CGFloat = 0;
-    
-    func perlin(x:CGFloat, y:CGFloat) -> CGFloat {
+    public func noise(x:CGFloat, y:CGFloat) -> CGFloat {
         
         //We ensure the point is bounded by 255 - This is the one bound of the unit square
         let xi = Int(x) & 255
@@ -89,7 +87,7 @@ public class Perlin: NSObject {
     }
     
     
-    public func octavePerlin(x:CGFloat, y:CGFloat, octaves:Int, persistence:CGFloat) -> CGFloat {
+    public func octaveNoise(x:CGFloat, y:CGFloat, octaves:Int, persistence:CGFloat) -> CGFloat {
         
         //This takes several perlin readings (n octaves) and merges them into one map
         var total:CGFloat = 0
@@ -99,7 +97,7 @@ public class Perlin: NSObject {
         
         //We sum the total and divide by the max at the end to normalise
         for _ in 0..<octaves {
-            total += perlin(x: x * frequency, y: y * frequency) * amplitude
+            total += noise(x: x * frequency, y: y * frequency) * amplitude
             
             maxValue += amplitude
             
@@ -114,7 +112,7 @@ public class Perlin: NSObject {
     }
 
     
-    public func octaveMap(width:Int, height: Int) -> [[CGFloat]] {
+    public func perlinMatrix(width:Int, height: Int) -> [[CGFloat]] {
         
         var map:[[CGFloat]] = []
         
@@ -129,7 +127,37 @@ public class Perlin: NSObject {
                 let cy:CGFloat = CGFloat(y)/50
                 
                 //We decide to use 8 octaves and 0.25 to generate our map. You can change these too
-                let p = octavePerlin(x: cx, y: cy, octaves: 8, persistence: 0.25)
+                let p = noise(x: cx, y: cy)
+                
+                row.append(p)
+            }
+            
+            //We store the map in a matrix for fast access
+            map.append(row)
+        }
+        
+        return map
+        
+        
+    }
+    
+    
+    public func octaveMatrix(width:Int, height: Int, octaves:Int, persistance:CGFloat) -> [[CGFloat]] {
+        
+        var map:[[CGFloat]] = []
+        
+        //We loop through the x and y values and scale by 50. This is an arbritatry value to scale the map
+        //You can play with this
+        for x in (0...width) {
+            
+            var row:[CGFloat] = []
+            
+            for y in (0...height) {
+                let cx:CGFloat = CGFloat(x)/50
+                let cy:CGFloat = CGFloat(y)/50
+                
+                //We decide to use 8 octaves and 0.25 to generate our map. You can change these too
+                let p = octaveNoise(x: cx, y: cy, octaves: octaves, persistence: persistance)
                 
                 row.append(p)
             }
@@ -144,7 +172,7 @@ public class Perlin: NSObject {
     }
     
     
-    public func generateNoiseImage(size:CGSize) -> UIImage {
+    public func generateNoiseImage(size:CGSize, matrix:[[CGFloat]]) -> UIImage {
         
         
         let width = Int(size.width)
@@ -152,9 +180,6 @@ public class Perlin: NSObject {
         
         //This times how long it takes to render, useful for testing its limits
         let startTime = CFAbsoluteTimeGetCurrent();
-        
-        //Create the map with the defined width
-        let map = octaveMap(width: width, height: height)
         
         //Create an array of pixels for each x and y value, prefilled with rgba(0,0,0,1.0)
         var pixelArray = [PixelData](repeating: PixelData(a: 255, r:0, g: 0, b: 0), count: width * height)
@@ -164,7 +189,7 @@ public class Perlin: NSObject {
             
             for y in 0..<height {
                 
-                var val = map[x][y]
+                var val = matrix[x][y]
                 
                 //In the case that a number outside of 0-1 got through, get rid of it now
                 if val > 1 {
@@ -198,7 +223,7 @@ public class Perlin: NSObject {
     }
     
     
-    public func generateLandImage(size:CGSize) -> UIImage {
+    public func generateLandImage(size:CGSize, matrix:[[CGFloat]]) -> UIImage {
         
         //This is near identical to the function above and the code should really be merged into one function in the future
         let width = Int(size.width)
@@ -206,13 +231,11 @@ public class Perlin: NSObject {
         
         let startTime = CFAbsoluteTimeGetCurrent();
         
-        let map = octaveMap(width: width, height: height)
-        
         var pixelArray = [PixelData](repeating: PixelData(a: 255, r:0, g: 0, b: 0), count: width * height)
         
         for i in 0 ..< width {
             for j in 0..<height {
-                var val = map[i][j]
+                var val = matrix[i][j]
                 if val > 1 {
                     val = 1
                 }
