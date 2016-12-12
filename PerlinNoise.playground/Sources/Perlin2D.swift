@@ -86,7 +86,7 @@ public class Perlin2D: NSObject {
         
         
         //We return the abs value to remove any negatives. Note that the noise forms almost a bell shape around the point 0, so there will be more values around 0 than 1
-        return abs(y1)
+        return (y1 + 1) / 2
     }
     
     
@@ -250,15 +250,15 @@ public class Perlin2D: NSObject {
                 let index = i * width + j
                 
                 //We pick arbitrary values to represent differnent layers, such as in a game and colour them
-                if val < 0.15 {               //Water level
+                if val < 0.4 {               //Water level
                     pixelArray[index].r = 0
                     pixelArray[index].g = 0
                     pixelArray[index].b = 255
-                } else if val < 0.25 {        //Sand
+                } else if val < 0.55 {        //Sand
                     pixelArray[index].r = 255
                     pixelArray[index].g = 255
                     pixelArray[index].b = 0
-                } else if val < 0.4 {        //Grass
+                } else if val < 0.75 {        //Grass
                     pixelArray[index].r = 0
                     pixelArray[index].g = 255
                     pixelArray[index].b = 0
