@@ -44,3 +44,5 @@ An extra feature of the 2D coordinate system is being able to turn your noise in
 ```swift
 perlin2D.generateNoiseImage(size: CGSize(width: 100, height: 100), matrix: mat1) 
 ```
+
+![Imgur](http://i.imgur.com/TQxeIUW.png)
