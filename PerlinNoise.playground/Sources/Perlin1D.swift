@@ -1,6 +1,6 @@
 import UIKit
 
-public class Perlin2D: NSObject {
+public class Perlin1D: NSObject {
     var permutation:[Int] = []
     
     
@@ -25,20 +25,16 @@ public class Perlin2D: NSObject {
         return t * t * t * (t * (t * 6 - 15) + 10) //This is the smoothing function for Perlin noise
     }
     
-    func grad(hash:Int, x:CGFloat, y:CGFloat) -> CGFloat {
+    func grad(hash:Int, x:CGFloat) -> CGFloat {
         
         //This takes a hash (a number from 0 - 5) generated from the random permutations and returns a random
         //operation for the node to offset
         
-        switch hash & 3 {
+        switch hash & 1 {
         case 0:
-            return x + y
+            return x
         case 1:
-            return -x + y
-        case 2:
-            return x - y
-        case 3:
-            return -x - y
+            return -x
         default:
             print("ERROR")
             return 0
@@ -51,46 +47,38 @@ public class Perlin2D: NSObject {
         return x > 0 ? Int(x) : Int(x-1)
     }
     
-    public func noise(x:CGFloat, y:CGFloat) -> CGFloat {
+    public func noise(x:CGFloat) -> CGFloat {
         
         //Find the unit grid cell containing the point
         var xi = fastfloor(x: x)
-        var yi = fastfloor(x: y)
         
         //This is the other bound of the unit square
         let xf:CGFloat = x - CGFloat(xi)
-        let yf:CGFloat = y - CGFloat(yi)
         
         //Wrap the ints around 255
         xi = xi & 255
-        yi = yi & 255
         
         //These are offset values for interpolation
         let u = fade(t: xf)
-        let v = fade(t: yf)
         
         
-        //These are the 4 possible permutations so we get the perm value for each
-        let aa = permutation[permutation[xi] + yi]
-        let ab = permutation[permutation[xi] + yi + 1]
-        let ba = permutation[permutation[xi + 1] + yi]
-        let bb = permutation[permutation[xi + 1] + yi + 1]
+        //These are the 2 possible permutations so we get the perm value for each
+        let a = permutation[xi]
+        let b = permutation[xi + 1]
         
         
-        //We pair aa and ba, and ab and bb and lerp the gradient of the two, using the offset values
-        //We take 1 off the value which we added one to for the perms
-        let x1 = lerp(a: grad(hash: aa, x: xf, y: yf), b: grad(hash: ba, x: xf - 1, y: yf), x: u)
-        let x2 = lerp(a: grad(hash: ab, x: xf, y: yf - 1), b: grad(hash: bb, x: xf - 1, y: yf - 1), x: u)
-        let y1 = lerp(a: x1, b: x2, x: v)
+        //Lerp a and b
+        let ab = lerp(a: grad(hash: a, x: xf), b: grad(hash: b, x: xf - 1), x: u)
+        
         
         
         
         //We return the value + 1 / 2 to remove any negatives.
-        return (y1 + 1) / 2
+        return (ab + 1) / 2
     }
     
     
-    public func octaveNoise(x:CGFloat, y:CGFloat, octaves:Int, persistence:CGFloat) -> CGFloat {
+    public func octaveNoise(x:CGFloat, octaves:Int, persistence:CGFloat) -> CGFloat {
         
         //This takes several perlin readings (n octaves) and merges them into one map
         var total:CGFloat = 0
@@ -100,7 +88,7 @@ public class Perlin2D: NSObject {
         
         //We sum the total and divide by the max at the end to normalise
         for _ in 0..<octaves {
-            total += noise(x: x * frequency, y: y * frequency) * amplitude
+            total += noise(x: x * frequency) * amplitude
             
             maxValue += amplitude
             
@@ -113,65 +101,90 @@ public class Perlin2D: NSObject {
         
         return total/maxValue
     }
-
     
-    public func perlinMatrix(width:Int, height: Int) -> [[CGFloat]] {
+    public func perlinArray(width:Int) -> [CGFloat] {
         
-        var map:[[CGFloat]] = []
+        var map:[CGFloat] = []
         
-        //We loop through the x and y values and scale by 50. This is an arbritatry value to scale the map
-        //You can play with this
+        
         for x in (0...width) {
             
-            var row:[CGFloat] = []
-            
-            for y in (0...height) {
-                let cx:CGFloat = CGFloat(x)/50
-                let cy:CGFloat = CGFloat(y)/50
-                
-                
-                let p = noise(x: cx, y: cy)
-                
-                row.append(p)
-            }
-            
-            //We store the map in a matrix for fast access
-            map.append(row)
+            let cx:CGFloat = CGFloat(x)/50
+            let p = noise(x: cx)
+            map.append(p)
         }
         
         return map
         
+    }
+    
+    public func octaveArray(width:Int, octaves:Int, persistance:CGFloat) -> [CGFloat] {
+        
+        var map:[CGFloat] = []
+        
+        
+        for x in (0...width) {
+            
+            let cx:CGFloat = CGFloat(x)/50
+            let p = octaveNoise(x: cx, octaves: octaves, persistence: persistance)
+            map.append(p)
+        }
+        
+        return map
         
     }
     
     
-    public func octaveMatrix(width:Int, height: Int, octaves:Int, persistance:CGFloat) -> [[CGFloat]] {
+    public func perlinBooleanMatrix(width:Int, height: Int) -> [[CGFloat]] {
         
-        var map:[[CGFloat]] = []
+        let map = perlinArray(width: width)
         
-        //We loop through the x and y values and scale by 50. This is an arbritatry value to scale the map
-        //You can play with this
-        for x in (0...width) {
-            
-            var row:[CGFloat] = []
+        var mat:[[CGFloat]] = []
+        
+        for (x, val) in map.enumerated() {
+            mat.append([])
             
             for y in (0...height) {
-                let cx:CGFloat = CGFloat(x)/50
-                let cy:CGFloat = CGFloat(y)/50
                 
-                //We decide to use 8 octaves and 0.25 to generate our map. You can change these too
-                let p = octaveNoise(x: cx, y: cy, octaves: octaves, persistence: persistance)
+                if CGFloat(y) < CGFloat(height) * val {
+                    mat[x].append(0)
+                } else {
+                    mat[x].append(1)
+                }
                 
-                row.append(p)
             }
-            
-            //We store the map in a matrix for fast access
-            map.append(row)
         }
         
-        return map
+        return mat
+    }
+    
+    
+    public func octaveBooleanMatrix(width:Int, height: Int, octaves:Int, persistance:CGFloat) -> [[CGFloat]] {
         
-
+        let map = octaveArray(width: width, octaves: octaves, persistance: persistance)
+        
+        var mat:[[CGFloat]] = []
+        
+        for (x, val) in map.enumerated() {
+            
+            mat.append([])
+            
+            for y in (0...height) {
+                
+                if CGFloat(y) < CGFloat(height) * val {
+                    mat[x].append(0)
+                } else {
+                    mat[x].append(1)
+                }
+                
+            }
+        }
+        
+        mat[0][10] = 1
+        
+        return mat
+        
+        
     }
     
     
@@ -198,7 +211,7 @@ public class Perlin2D: NSObject {
                 if val > 1 {
                     val = 1
                 }
-
+                
                 if val < 0 {
                     val = 0
                 }
@@ -278,5 +291,5 @@ public class Perlin2D: NSObject {
         return outputImage
         
     }
-
+    
 }
